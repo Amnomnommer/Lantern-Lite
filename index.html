@@ -77,7 +77,7 @@ function showSaves(web) {
 
 async function main() {
   const pyodide = await loadPyodide();
-  await pyodide.loadPackage(["sqlite3"]);
+  await pyodide.loadPackage(["sqlite3", "ssl"]);  // stdlib parts Pyodide ships separately (see test_lite)
   const source = await (await fetch("lantern.zip")).arrayBuffer();
   pyodide.unpackArchive(source, "zip", { extractDir: "/home/pyodide/lantern-src" });
   const fs = pyodide.FS;

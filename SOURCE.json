@@ -4,7 +4,7 @@
   ".github/workflows/pages.yml": "46a13b142aec3f35dff39ae03e841f835da03595f7a9e584bf56cc28fe4c0afc",
   ".gitignore": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793",
   "README.md": "dfae8f25218d17bbc0458291976a9fda85fa81e033ad00ff8b16bd9767226ff8",
-  "index.html": "41b00f2c591872c269ccd72900389878bc3bbb0a39d06884b5b10722a8c988d2",
+  "index.html": "8935f496e99164b5e5d9526acee34ff0c2435746e76418343353a01a0e3d8e2b",
   "lantern-lite.sh": "3e636abccd5af589157d2e8339f896bb6c18515158e244dbaa8ad2082f24f035",
   "src/lantern/__init__.py": "1e10d7b96ba6dae5dcb7da9d5ecee06617a29f8aa1e7cbf7749fb7ffe1073bf9",
   "src/lantern/association_mind.py": "301759bd9ae0de619bb2cbe3bc95d2b45f54a68e49f8db029517b319d6cef029",
@@ -14,7 +14,7 @@
   "src/lantern/connotation_mind.py": "3ce6d849443b1ef0f293bb7356bac5e7f196317be8a9046bc437c69727ec6207",
   "src/lantern/console_mind.py": "bd9cd4a3d87a9a9bb593948caa5288409f2f37892e1b7d85328a0b09c232c745",
   "src/lantern/document_lens.py": "12a30074c91acaa115f8ab39c8ead20dc78dd7b7997db810f2950eb1de1b9561",
-  "src/lantern/durable_identity_storage.py": "acd6790a2cc1daf449601a086d7c535d1aff1be52342f30d4dea41121a6b83b2",
+  "src/lantern/durable_identity_storage.py": "793c1fe4fa60645c97f31bbc538b27df6439f5490f644ea541a74e6020acd475",
   "src/lantern/expectation_mind.py": "7ee2443f1492b690e9510c5b10cc4460acbaa2f0fb37fc0d736ff71c80287571",
   "src/lantern/explorer.py": "d245a0166de6003bc91a4ffeb371860d010ef7e0f3c8f4e6d3cd13f8f26a5a17",
   "src/lantern/hive/__init__.py": "b73321a7f7c6be38e868bdb4494641ef029b190fe4bdd7f0add1c45b59aa57b0",
@@ -67,6 +67,6 @@
   "src/lantern/trusted_collaboration.py": "80f6113fce2a201d72780cb140925ee7da4f0f31906d1302fa66fb9e32e5b980",
   "src/lantern/vault_guard.py": "77cc9308e8c7e33952cd333bbe0fdd5a0bacecb0feeeffe435dea1beab057067"
  },
- "lantern_revision": "a7dcedb14d0af38ec1018ee9ba310056ad59c808",
+ "lantern_revision": "888ef82d75d64ecd2f6f81cd5f1cbf36be556689",
  "note": "published from the private Amnomnommer/Lantern by scripts/publish_lite.py; do not edit here"
 }

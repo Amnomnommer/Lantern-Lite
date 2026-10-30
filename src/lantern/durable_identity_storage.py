@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-import fcntl
+try:
+    import fcntl
+except ImportError:  # the Lite Lantern's browser (Pyodide) has no fcntl: one page, one writer
+    fcntl = None  # type: ignore[assignment]
 import hashlib
 import hmac
 import json
 import os
 from pathlib import Path
 import stat
+import sys
 import tempfile
 from typing import Callable, TypeVar
 
@@ -82,10 +86,15 @@ class _AtomicJsonStore:
         )
         try:
             os.fchmod(descriptor, 0o600)
+            if fcntl is None:
+                if sys.platform != "emscripten":  # anywhere with other processes, never write unlocked
+                    raise RuntimeError("file locking is unavailable here")
+                return operation()
             fcntl.flock(descriptor, fcntl.LOCK_EX)
             return operation()
         finally:
-            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            if fcntl is not None:
+                fcntl.flock(descriptor, fcntl.LOCK_UN)
             os.close(descriptor)
 
     def write(self, payload: dict[str, object]) -> None:
