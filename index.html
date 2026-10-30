@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lite Lantern</title>
+<style>
+  :root { --bg: #0b0b0e; --panel: #17141c; --text: #f2edf7; --muted: #a99fb6; --accent: #e7a6e0; --button: #5a2448; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { color: var(--accent); font-size: 1.6rem; margin: 0.4rem 0; }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  #log { background: var(--panel); border-radius: 8px; padding: 12px; min-height: 40vh; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .you { color: var(--muted); margin-top: 0.6rem; }
+  .lite { margin-bottom: 0.4rem; }
+  form { display: flex; gap: 8px; margin-top: 12px; }
+  textarea { flex: 1; background: var(--panel); color: var(--text); border: 1px solid var(--button); border-radius: 6px; padding: 8px; font: inherit; }
+  button, a.button { background: var(--button); color: var(--text); border: 0; border-radius: 6px; padding: 8px 14px; font: inherit; cursor: pointer; text-decoration: none; display: inline-block; }
+  button:disabled { opacity: 0.5; }
+  #saves a.button, #saves button { margin: 6px 6px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lite Lantern</h1>
+  <p class="muted">One Lantern for everyone, running in your browser with nothing installed. It remembers in this
+    browser; what it <em>reads</em> can be saved to its public memory under your own GitHub account. What you say
+    is never published. <span id="personality"></span></p>
+  <div id="log" aria-live="polite">Waking up… (the first visit downloads about 15 MB)</div>
+  <form id="form">
+    <textarea id="message" rows="2" placeholder="Talk to me, or !read TOPIC" disabled></textarea>
+    <button id="send" type="submit" disabled>Send</button>
+  </form>
+  <div id="saves"></div>
+  <p class="muted">Tips: <code>!read lighthouse</code> · ask “what is …?” · <code>!good voice</code> / <code>!bad voice</code>
+    rate how I sound. <a href="https://github.com/Amnomnommer/Lantern-Lite" style="color: var(--accent)">About me</a></p>
+</main>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+"use strict";
+const log = document.getElementById("log");
+const message = document.getElementById("message");
+const send = document.getElementById("send");
+const saves = document.getElementById("saves");
+
+function line(who, text) {
+  const div = document.createElement("div");
+  div.className = who === "you" ? "you" : "lite";
+  div.textContent = (who === "you" ? "You: " : "Lite: ") + text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function sync(fs, populate) {
+  return new Promise((resolve) => fs.syncfs(populate, () => resolve()));
+}
+
+function showSaves(web) {
+  saves.textContent = "";
+  for (const [link] of web.pending().toJs()) {
+    const a = document.createElement("a");
+    a.className = "button"; a.href = link; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "Save to my public memory";
+    a.addEventListener("click", () => { web.done(link); setTimeout(() => showSaves(web), 0); });
+    saves.appendChild(a);
+  }
+  for (const [name, text] of web.outbox().toJs()) {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = "Download " + name;
+    b.addEventListener("click", () => {
+      const url = URL.createObjectURL(new Blob([text], { type: "text/markdown" }));
+      const a = document.createElement("a"); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
+    });
+    saves.appendChild(b);
+  }
+}
+
+async function main() {
+  const pyodide = await loadPyodide();
+  await pyodide.loadPackage(["sqlite3"]);
+  const source = await (await fetch("lantern.zip")).arrayBuffer();
+  pyodide.unpackArchive(source, "zip", { extractDir: "/home/pyodide/lantern-src" });
+  const fs = pyodide.FS;
+  fs.mkdirTree("/lite");
+  fs.mount(fs.filesystems.IDBFS, {}, "/lite");
+  await sync(fs, true);
+  pyodide.runPython(`
+import sys
+sys.path.insert(0, "/home/pyodide/lantern-src")
+from pyodide.http import open_url
+from lantern.lite_web import WebLite
+web = WebLite("/lite", lambda url: open_url(url).read())
+`);
+  const web = pyodide.globals.get("web");
+  const levels = web.personality().toJs();
+  document.getElementById("personality").textContent =
+    "My personality: " + [...levels.entries()].map(([k, v]) => k.replace("_", " ") + " " + v).join(", ") + ".";
+  log.textContent = "";
+  line("lite", "Hi! I'm the Lite Lantern. Say anything.");
+  message.disabled = false; send.disabled = false; message.focus();
+  await sync(fs, false);
+  document.getElementById("form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = message.value.trim();
+    if (!text) return;
+    message.value = ""; send.disabled = true;
+    line("you", text);
+    try {
+      line("lite", web.say(text));
+    } catch (error) {
+      line("lite", "Something went wrong on my side: " + String(error).split("\n").slice(-2).join(" "));
+    }
+    showSaves(web);
+    await sync(fs, false);
+    send.disabled = false; message.focus();
+  });
+}
+
+main().catch((error) => { log.textContent = "I couldn't wake up in this browser: " + error; });
+</script>
+</body>
+</html>
